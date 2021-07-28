@@ -4,50 +4,47 @@ import (
 	"fmt"
 
 	"github.com/vompressor/vplug/loader"
-	"github.com/vompressor/vplug/plugin"
+	"github.com/vompressor/vplug/vplugin"
 )
 
 func main() {
-	var funcs *plugin.NTFuncs
-	var info *plugin.PluginInfo
+	var VPlugin *vplugin.VPlugin
 
-	// Load plugin
-	funcs, info, err := loader.Load("plugin_side/vpexample.so", "Funcs")
+	VPlugin, err := loader.Load("plugin_side/vpexample.so", "VPlugin")
 
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
-	// Read plugin info
-	println("plugin name:")
-	println(info.Name)
-	println("plugin info:")
-	println(info.Version)
+	println("Plugin name:")
+	println(VPlugin.Info.Name)
 	println()
-	println("funcs:")
+	println("Plugin version")
+	println(VPlugin.Info.Version)
+	println()
+	println("Plugin description")
+	println(VPlugin.Info.Description)
+	println()
 
-	// Print funcs name and input types from plugin
-	for k, v := range *funcs {
-		println(k)
-		println("in type:")
-		for _, t := range v.InTypes {
-			print(t.String() + ", ")
+	println("Function list:")
+	for k, v := range VPlugin.FuncMap {
+		fmt.Printf("%s:", k)
+		for i, d := range v.InTypes {
+			fmt.Printf(" %d:[%s],", i, d.String())
 		}
+
 		println()
 	}
+
 	println()
 
-	// Get func Hello
-	Hello := (*funcs)["Hello"]
+	VPlugin.FuncMap["hello"].Call()
+	VPlugin.FuncMap["echo"].Call("hi")
 
-	// Call Hello
-	Hello.Call()
+	for k, v := range VPlugin.ValMap {
+		fmt.Printf("%s:", k)
+		println(v.Type.String())
+		println(v.Val.(float64))
+	}
 
-	// Get func Encode
-	Encode := (*funcs)["Encode"]
-
-	// Call func Encode
-	Encode.Call(info, func(ret []byte) {
-		fmt.Printf("%s\n", ret)
-	})
 }
